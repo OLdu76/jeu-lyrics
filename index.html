@@ -73,16 +73,23 @@
         fetch('https://lyricsgame.netlify.app/lyrics.txt')
             .then(response => response.text())
             .then(text => {
-                let rawSongs = text.trim().split(/\n\s*\n+/g); // Sépare les chansons par au moins une ligne vide
+                console.log("Contenu de lyrics.txt récupéré :", text); // Debugging
+                let rawSongs = text.trim().split(/\n\s*\n+/g);
+                console.log("Chansons détectées :", rawSongs); // Debugging
+                
                 songs = rawSongs.map(song => {
                     let lines = song.split("\n").map(line => line.trim()).filter(line => line);
-                    let titleMatch = lines[0].match(/^\[(.*?)\] - \[(.*?)\]$/);
+                    console.log("Lignes d'une chanson détectées :", lines); // Debugging
+                    
+                    let titleMatch = lines[0]?.match(/\[(.*?)\] - \[(.*?)\]/);
                     return {
                         artist: titleMatch ? titleMatch[1] : "Artiste inconnu",
                         title: titleMatch ? titleMatch[2] : "Titre inconnu",
-                        lyrics: lines.slice(1) // Exclut le titre des paroles
+                        lyrics: lines.slice(1)
                     };
-                }).filter(song => song.lyrics.length > 0); // Enlève les entrées vides
+                }).filter(song => song.lyrics.length > 0);
+                
+                console.log("Liste des chansons formatées :", songs); // Debugging
                 choisirNouvelleChanson();
             })
             .catch(error => console.error("Erreur de chargement du fichier lyrics.txt", error));
@@ -90,6 +97,7 @@
         function choisirNouvelleChanson() {
             if (songs.length > 0) {
                 currentSong = songs[Math.floor(Math.random() * songs.length)];
+                console.log("Chanson sélectionnée :", currentSong); // Debugging
                 displayedLines = 1;
                 updateLyrics();
             } else {
@@ -98,6 +106,7 @@
         }
 
         function updateLyrics() {
+            console.log("Mise à jour des paroles :", currentSong.lyrics);
             let lyricsList = document.getElementById("lyrics-list");
             lyricsList.innerHTML = "";
             for (let i = 0; i < displayedLines; i++) {
