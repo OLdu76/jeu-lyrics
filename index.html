@@ -70,11 +70,9 @@
         let currentSong = {};
         let displayedLines = 1;
 
-        fetch('lyrics.txt')
-    .then(response => response.text())
-    .then(text => {
-        console.log("Contenu de lyrics.txt récupéré :", text); // 🔍 Vérifier le contenu
-
+        fetch('https://lyricsgame.netlify.app/lyrics.txt')
+            .then(response => response.text())
+            .then(text => {
                 let rawSongs = text.trim().split(/\n\s*\n+/g); // Sépare les chansons par au moins une ligne vide
                 songs = rawSongs.map(song => {
                     let lines = song.split("\n").map(line => line.trim()).filter(line => line);
