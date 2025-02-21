@@ -115,6 +115,15 @@
             updatePoints();
         }
 
+        function passer() {
+            if (startIndex + displayedLines < currentSong.lyrics.length) {
+                score -= 1;
+                displayedLines += 1;
+                updateLyrics();
+                document.getElementById("score").textContent = score;
+            }
+        }
+
         function updatePoints() {
             let penalty = displayedLines - 1;
             document.getElementById("title-pts").textContent = Math.max(5 - penalty, 1);
