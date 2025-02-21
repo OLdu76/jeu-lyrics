@@ -59,11 +59,11 @@
         <button onclick="verifierReponse()">Valider</button>
         <p id="resultat"></p>
         <div class="buttons">
-            <button onclick="reveal('title')">Titre (5 points)</button>
-            <button onclick="reveal('artist')">Artiste (3 points)</button>
-            <button onclick="reveal('title_artist')">Titre + Artiste (8 points)</button>
-            <button onclick="reveal('more_lines')">Donne <span id="x-value">3</span> phrases suivantes (<span id="x-score">3</span> points)</button>
-            <button onclick="passer()">Passer (-1 point, +1 ligne)</button>
+            <button id="title-btn" onclick="reveal('title')">Titre (5 pts)</button>
+            <button id="artist-btn" onclick="reveal('artist')">Artiste (3 pts)</button>
+            <button id="title-artist-btn" onclick="reveal('title_artist')">Titre + Artiste (8 pts)</button>
+            <button id="more-lines-btn" onclick="reveal('more_lines')">Donne <span id="x-value">3</span> phrases suivantes (<span id="x-score">3</span> pts)</button>
+            <button onclick="passer()">Passer (-1 pt, +1 ligne)</button>
             <button onclick="choisirNouvelleChanson()">Nouvelle chanson</button>
         </div>
     </div>
@@ -73,6 +73,7 @@
         let songs = [];
         let currentSong = {};
         let displayedLines = 1;
+        let startIndex = 0;
 
         fetch('https://lyricsgame.netlify.app/lyrics.txt')
             .then(response => response.text())
@@ -94,6 +95,7 @@
         function choisirNouvelleChanson() {
             if (songs.length > 0) {
                 currentSong = songs[Math.floor(Math.random() * songs.length)];
+                startIndex = Math.floor(Math.random() * (currentSong.lyrics.length - 5));
                 displayedLines = 1;
                 updateLyrics();
             }
@@ -103,9 +105,9 @@
             let lyricsList = document.getElementById("lyrics-list");
             lyricsList.innerHTML = "";
             for (let i = 0; i < displayedLines; i++) {
-                if (i < currentSong.lyrics.length) {
+                if (startIndex + i < currentSong.lyrics.length) {
                     let div = document.createElement("div");
-                    div.textContent = currentSong.lyrics[i];
+                    div.textContent = currentSong.lyrics[startIndex + i];
                     lyricsList.appendChild(div);
                 }
             }
@@ -116,33 +118,25 @@
 
         function verifierReponse() {
             let reponse = document.getElementById("user-answer").value.trim().toLowerCase();
+            document.getElementById("user-answer").value = "";
             let titre = currentSong.title.toLowerCase();
             let artiste = currentSong.artist.toLowerCase();
             let points = 0;
 
-            if (reponse === titre) {
-                points = 5;
-            } else if (reponse === artiste) {
-                points = 3;
-            } else if (reponse === `${titre} - ${artiste}` || reponse === `${artiste} - ${titre}`) {
-                points = 8;
-            }
+            if (reponse === titre) points = 5;
+            else if (reponse === artiste) points = 3;
+            else if (reponse === `${titre} - ${artiste}` || reponse === `${artiste} - ${titre}`) points = 8;
 
             score += points;
             document.getElementById("score").textContent = score;
             document.getElementById("resultat").textContent = points > 0 ? `Bonne réponse ! +${points} points` : "Mauvaise réponse !";
         }
 
-        function passer() {
-            displayedLines = Math.min(displayedLines + 1, currentSong.lyrics.length);
-            updateLyrics();
-        }
-
-        function reveal(type) {
-            if (type === 'title') alert("Titre : " + currentSong.title + " (+5 points)");
-            else if (type === 'artist') alert("Artiste : " + currentSong.artist + " (+3 points)");
-            else if (type === 'title_artist') alert("Titre : " + currentSong.title + " - Artiste : " + currentSong.artist + " (+8 points)");
-        }
+        document.getElementById("user-answer").addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                verifierReponse();
+            }
+        });
     </script>
 </body>
 </html>
