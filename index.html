@@ -59,9 +59,9 @@
         <button onclick="verifierReponse()">Valider</button>
         <p id="resultat"></p>
         <div class="buttons">
-            <button id="title-btn" onclick="reveal('title')">Titre (5 pts)</button>
-            <button id="artist-btn" onclick="reveal('artist')">Artiste (3 pts)</button>
-            <button id="title-artist-btn" onclick="reveal('title_artist')">Titre + Artiste (8 pts)</button>
+            <button id="title-btn" onclick="reveal('title')">Titre (<span id="title-pts">5</span> pts)</button>
+            <button id="artist-btn" onclick="reveal('artist')">Artiste (<span id="artist-pts">3</span> pts)</button>
+            <button id="title-artist-btn" onclick="reveal('title_artist')">Titre + Artiste (<span id="title-artist-pts">8</span> pts)</button>
             <button id="more-lines-btn" onclick="reveal('more_lines')">Donne <span id="x-value">3</span> phrases suivantes (<span id="x-score">3</span> pts)</button>
             <button onclick="passer()">Passer (-1 pt, +1 ligne)</button>
             <button onclick="choisirNouvelleChanson()">Nouvelle chanson</button>
@@ -87,7 +87,7 @@
                         title: titleMatch ? titleMatch[2] : "Titre inconnu",
                         lyrics: lines.slice(1)
                     };
-                }).filter(song => song.lyrics.length > 0);
+                }).filter(song => song.lyrics.length > 5);
                 choisirNouvelleChanson();
             })
             .catch(error => console.error("Erreur de chargement du fichier lyrics.txt", error));
@@ -98,6 +98,7 @@
                 startIndex = Math.floor(Math.random() * (currentSong.lyrics.length - 5));
                 displayedLines = 1;
                 updateLyrics();
+                updatePoints();
             }
         }
 
@@ -111,9 +112,14 @@
                     lyricsList.appendChild(div);
                 }
             }
-            let x = Math.floor(Math.random() * 5) + 1;
-            document.getElementById("x-value").textContent = x;
-            document.getElementById("x-score").textContent = x;
+            updatePoints();
+        }
+
+        function updatePoints() {
+            let penalty = displayedLines - 1;
+            document.getElementById("title-pts").textContent = Math.max(5 - penalty, 1);
+            document.getElementById("artist-pts").textContent = Math.max(3 - penalty, 1);
+            document.getElementById("title-artist-pts").textContent = Math.max(8 - penalty, 2);
         }
 
         function verifierReponse() {
@@ -122,21 +128,16 @@
             let titre = currentSong.title.toLowerCase();
             let artiste = currentSong.artist.toLowerCase();
             let points = 0;
+            let penalty = displayedLines - 1;
 
-            if (reponse === titre) points = 5;
-            else if (reponse === artiste) points = 3;
-            else if (reponse === `${titre} - ${artiste}` || reponse === `${artiste} - ${titre}`) points = 8;
+            if (reponse === titre) points = Math.max(5 - penalty, 1);
+            else if (reponse === artiste) points = Math.max(3 - penalty, 1);
+            else if (reponse === `${titre} - ${artiste}` || reponse === `${artiste} - ${titre}`) points = Math.max(8 - penalty, 2);
 
             score += points;
             document.getElementById("score").textContent = score;
             document.getElementById("resultat").textContent = points > 0 ? `Bonne réponse ! +${points} points` : "Mauvaise réponse !";
         }
-
-        document.getElementById("user-answer").addEventListener("keydown", function(event) {
-            if (event.key === "Enter") {
-                verifierReponse();
-            }
-        });
     </script>
 </body>
 </html>
