@@ -51,21 +51,25 @@
 <body>
     <div class="container">
         <h1>Guess the Lyrics</h1>
-        <div class="score">Pour <span id="score">5</span> points</div>
+        <div class="score">Score actuel : <span id="score">0</span> points</div>
         <div class="lyrics-box">
             <div id="lyrics-list"></div>
         </div>
+        <input type="text" id="user-answer" placeholder="Entrez votre réponse">
+        <button onclick="verifierReponse()">Valider</button>
+        <p id="resultat"></p>
         <div class="buttons">
             <button onclick="reveal('title')">Titre (5 points)</button>
-            <button onclick="reveal('artist')">Artiste (5 points)</button>
-            <button onclick="reveal('title_artist')">Titre + Artiste (10 points)</button>
-            <button onclick="reveal('more_lines')">Donne <span id="x-value">3</span> phrases suivantes (<span id="x-score">15</span> points)</button>
+            <button onclick="reveal('artist')">Artiste (3 points)</button>
+            <button onclick="reveal('title_artist')">Titre + Artiste (8 points)</button>
+            <button onclick="reveal('more_lines')">Donne <span id="x-value">3</span> phrases suivantes (<span id="x-score">3</span> points)</button>
             <button onclick="passer()">Passer (-1 point, +1 ligne)</button>
+            <button onclick="choisirNouvelleChanson()">Nouvelle chanson</button>
         </div>
     </div>
 
     <script>
-        let score = 5;
+        let score = 0;
         let songs = [];
         let currentSong = {};
         let displayedLines = 1;
@@ -73,14 +77,9 @@
         fetch('https://lyricsgame.netlify.app/lyrics.txt')
             .then(response => response.text())
             .then(text => {
-                console.log("Contenu de lyrics.txt récupéré :", text); // Debugging
                 let rawSongs = text.trim().split(/\n\s*\n+/g);
-                console.log("Chansons détectées :", rawSongs); // Debugging
-                
                 songs = rawSongs.map(song => {
                     let lines = song.split("\n").map(line => line.trim()).filter(line => line);
-                    console.log("Lignes d'une chanson détectées :", lines); // Debugging
-                    
                     let titleMatch = lines[0]?.match(/\[(.*?)\] - \[(.*?)\]/);
                     return {
                         artist: titleMatch ? titleMatch[1] : "Artiste inconnu",
@@ -88,8 +87,6 @@
                         lyrics: lines.slice(1)
                     };
                 }).filter(song => song.lyrics.length > 0);
-                
-                console.log("Liste des chansons formatées :", songs); // Debugging
                 choisirNouvelleChanson();
             })
             .catch(error => console.error("Erreur de chargement du fichier lyrics.txt", error));
@@ -97,16 +94,12 @@
         function choisirNouvelleChanson() {
             if (songs.length > 0) {
                 currentSong = songs[Math.floor(Math.random() * songs.length)];
-                console.log("Chanson sélectionnée :", currentSong); // Debugging
                 displayedLines = 1;
                 updateLyrics();
-            } else {
-                document.getElementById("lyrics-list").textContent = "Aucune chanson trouvée dans lyrics.txt";
             }
         }
 
         function updateLyrics() {
-            console.log("Mise à jour des paroles :", currentSong.lyrics);
             let lyricsList = document.getElementById("lyrics-list");
             lyricsList.innerHTML = "";
             for (let i = 0; i < displayedLines; i++) {
@@ -116,24 +109,39 @@
                     lyricsList.appendChild(div);
                 }
             }
-            document.getElementById("score").textContent = score;
             let x = Math.floor(Math.random() * 5) + 1;
             document.getElementById("x-value").textContent = x;
-            document.getElementById("x-score").textContent = x * score;
+            document.getElementById("x-score").textContent = x;
         }
 
-        function reveal(type) {
-            if (type === 'title') alert("Titre : " + currentSong.title);
-            else if (type === 'artist') alert("Artiste : " + currentSong.artist);
-            else if (type === 'title_artist') alert("Titre : " + currentSong.title + " - Artiste : " + currentSong.artist);
+        function verifierReponse() {
+            let reponse = document.getElementById("user-answer").value.trim().toLowerCase();
+            let titre = currentSong.title.toLowerCase();
+            let artiste = currentSong.artist.toLowerCase();
+            let points = 0;
+
+            if (reponse === titre) {
+                points = 5;
+            } else if (reponse === artiste) {
+                points = 3;
+            } else if (reponse === `${titre} - ${artiste}` || reponse === `${artiste} - ${titre}`) {
+                points = 8;
+            }
+
+            score += points;
+            document.getElementById("score").textContent = score;
+            document.getElementById("resultat").textContent = points > 0 ? `Bonne réponse ! +${points} points` : "Mauvaise réponse !";
         }
 
         function passer() {
-            if (score > 1) {
-                score--;
-                displayedLines = Math.min(displayedLines + 1, currentSong.lyrics.length);
-                updateLyrics();
-            }
+            displayedLines = Math.min(displayedLines + 1, currentSong.lyrics.length);
+            updateLyrics();
+        }
+
+        function reveal(type) {
+            if (type === 'title') alert("Titre : " + currentSong.title + " (+5 points)");
+            else if (type === 'artist') alert("Artiste : " + currentSong.artist + " (+3 points)");
+            else if (type === 'title_artist') alert("Titre : " + currentSong.title + " - Artiste : " + currentSong.artist + " (+8 points)");
         }
     </script>
 </body>
